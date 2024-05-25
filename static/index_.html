@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
+</head>
+    <title>Microphone Input</title>
+</head>
+<body>
+    <h1>Microphone Input and Translation</h1>
+    <div>
+        <label for="sourceLang">Source Language:</label>
+        <select id="sourceLang">
+            <option value="AR">Arabic</option>
+            <option value="BG">Bulgarian</option>
+            <option value="CS">Czech</option>
+            <option value="DA">Danish</option>
+            <option value="DE">German</option>
+            <option value="EL">Greek</option>
+            <option value="EN">English</option>
+            <option value="ES">Spanish</option>
+            <option value="ET">Estonian</option>
+            <option value="FI">Finnish</option>
+            <option value="FR">French</option>
+            <option value="HU">Hungarian</option>
+            <option value="ID">Indonesian</option>
+            <option value="IT">Italian</option>
+            <option value="JA">Japanese</option>
+            <option value="KO">Korean</option>
+            <option value="LT">Lithuanian</option>
+            <option value="LV">Latvian</option>
+            <option value="NB">Norwegian Bokmål</option>
+            <option value="NL">Dutch</option>
+            <option value="PL">Polish</option>
+            <option value="PT">Portuguese</option>
+            <option value="RO">Romanian</option>
+            <option value="RU">Russian</option>
+            <option value="SK">Slovak</option>
+            <option value="SL">Slovenian</option>
+            <option value="SV">Swedish</option>
+            <option value="TR">Turkish</option>
+            <option value="UK">Ukrainian</option>
+            <option value="ZH">Chinese</option>
+        </select>
+    </div>
+    <div>
+        <label for="targetLang">Target Language:</label>
+        <select id="targetLang">
+            <option value="AR">Arabic</option>
+            <option value="BG">Bulgarian</option>
+            <option value="CS">Czech</option>
+            <option value="DA">Danish</option>
+            <option value="DE">German</option>
+            <option value="EL">Greek</option>
+            <option value="EN-GB">English (British)</option>
+            <option value="EN-US">English (American)</option>
+            <option value="ES">Spanish</option>
+            <option value="ET">Estonian</option>
+            <option value="FI">Finnish</option>
+            <option value="FR">French</option>
+            <option value="HU">Hungarian</option>
+            <option value="ID">Indonesian</option>
+            <option value="IT">Italian</option>
+            <option value="JA">Japanese</option>
+            <option value="KO">Korean</option>
+            <option value="LT">Lithuanian</option>
+            <option value="LV">Latvian</option>
+            <option value="NB">Norwegian Bokmål</option>
+            <option value="NL">Dutch</option>
+            <option value="PL">Polish</option>
+            <option value="PT-BR">Portuguese (Brazilian)</option>
+            <option value="PT-PT">Portuguese (all varieties excluding Brazilian)</option>
+            <option value="RO">Romanian</option>
+            <option value="RU">Russian</option>
+            <option value="SK">Slovak</option>
+            <option value="SL">Slovenian</option>
+            <option value="SV">Swedish</option>
+            <option value="TR">Turkish</option>
+            <option value="UK">Ukrainian</option>
+            <option value="ZH">Chinese (simplified)</option>
+        </select>
+    </div>
+    <button id="startButton">Start Recording</button>
+    <button id="stopButton" disabled>Stop Recording</button>
+    <audio id="audioPlayback" controls></audio>
+
+    <script>
+        const sourceLangSelect = document.getElementById('sourceLang');
+        const targetLangSelect = document.getElementById('targetLang');
+
+        let recorder;
+        let audioContext;
+        let intervalId;
+
+        document.getElementById('startButton').addEventListener('click', async () => {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioContext = new AudioContext();
+            const input = audioContext.createMediaStreamSource(stream);
+            recorder = new Recorder(input, { numChannels: 1 }); // Mono channel
+            recorder.record();
+            document.getElementById('startButton').disabled = true;
+            document.getElementById('stopButton').disabled = false;
+
+            intervalId = setInterval(() => {
+                recorder.exportWAV((blob) => {
+                    const formData = new FormData();
+                    formData.append('audio', blob, 'audio.wav');
+                    formData.append('sourceLang', document.getElementById('sourceLang').value);
+                    formData.append('targetLang', document.getElementById('targetLang').value);
+                    
+                    fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    }).then(response => response.json())
+                      .then(data => {
+                        if (data.filename) {
+                            const audioUrl = `/audio/${data.filename}`;
+                            const audioPlayback = document.getElementById('audioPlayback');
+                            audioPlayback.src = audioUrl;
+                            audioPlayback.play();
+                        }
+                    }).catch(error => console.error(error));
+
+                    recorder.clear();
+                });
+            }, 1000); // Send audio every second
+        });
+
+        document.getElementById('stopButton').onclick = () => {
+            clearInterval(intervalId);
+            recorder.stop();
+            document.getElementById('startButton').disabled = false;
+            document.getElementById('stopButton').disabled = true;
+        };
+    </script>
+</body>
+</html>
+

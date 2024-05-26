@@ -1,3 +1,4 @@
-.vscode
-audio_files
-__pycache__
+.vscode/
+audio_files/
+__pycache__/
+*.pem

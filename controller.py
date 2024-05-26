@@ -2,10 +2,8 @@ from flask import Flask, request, send_file, render_template, jsonify
 import requests
 import json
 from flask_cors import CORS
-import socket
 import os
 import tempfile
-import io
 import logging
 
 app = Flask(__name__, static_url_path="/static", static_folder='/home/monx94/Downloads/kurhanvoice/static')

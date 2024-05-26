@@ -128,10 +128,29 @@ def index():
     source_lang = request.args.get('sourceLang')
     target_lang = request.args.get('targetLang')
     settings = request.args.get('settings')
+
+    # Create a logger
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+
+    # Create a file handler and set the log level
+    file_handler = logging.FileHandler('model_requests.log')
+    file_handler.setLevel(logging.INFO)
+
+    # Create a log formatter
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+
+    # Add the file handler to the logger
+    logger.addHandler(file_handler)
+
+    # Log the request info
+    logger.info(f'Request received: audio={audio}, sourceLang={source_lang}, targetLang={target_lang}, settings={settings}')
+
     response = handle_client(audio, source_lang, target_lang, settings)
     return response
 
 if __name__ == "__main__":
-    app.run(port=12346)
+    app.run(port=12346,debug=True)
     logging.info("Server 2 is listening...")
 

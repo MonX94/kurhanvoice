@@ -2,4 +2,5 @@
 audio_files/
 __pycache__/
 *.pem
+model_requests.log
 controller_requests.log

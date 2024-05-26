@@ -66,11 +66,15 @@ def upload_audio():
         logger.info(f'Request received: audio={temp_file.name}, sourceLang={source_lang}, targetLang={target_lang}, settings={settings}')
         response = requests.post('http://localhost:12346/', data={'audio': temp_file.name, 'sourceLang': source_lang, 'targetLang': target_lang, 'settings': settings})
 
+        if response.status_code == 202: # Accepted; Data still processing
+            return {}, 202
+
         # Clean up the temporary file
         #os.remove(temp_file.name)
 
         # Send the filename back to the frontend
-        return response
+        logger.info(f'Response sent: {response.json()}')
+        return response.json(), 200
     except Exception as e:
         return {'error': str(e)}, 500
 

@@ -53,6 +53,11 @@ class ASRBase:
     def use_vad(self):
         raise NotImplemented("must be implemented in the child class")
 
+    def set_language(self, lan):
+        self.original_language = lan
+
+    def get_language(self):
+        return self.original_language
 
 class WhisperTimestampedASR(ASRBase):
     """Uses whisper_timestamped library as the backend. Initially, we tested the code on this backend. It worked, but slower than faster-whisper.
@@ -360,13 +365,16 @@ class OnlineASRProcessor:
         non_prompt = self.commited[k:]
         return self.asr.sep.join(prompt[::-1]), self.asr.sep.join(t for _,_,t in non_prompt)
 
-    def process_iter(self):
+    def process_iter(self, user_prompt=""):
         """Runs on the current audio buffer.
         Returns: a tuple (beg_timestamp, end_timestamp, "text"), or (None, None, ""). 
         The non-emty text is confirmed (committed) partial transcript.
         """
 
         prompt, non_prompt = self.prompt()
+
+        prompt = user_prompt + prompt[len(user_prompt):]
+        
         logger.debug(f"PROMPT: {prompt}")
         logger.debug(f"CONTEXT: {non_prompt}")
         logger.debug(f"transcribing {len(self.audio_buffer)/self.SAMPLING_RATE:2.2f} seconds from {self.buffer_time_offset:2.2f}")

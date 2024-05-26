@@ -1,9 +1,7 @@
-import socket
 import subprocess
 import os
 import numpy as np
 import librosa
-from line_packet import receive_one_line, send_one_line
 from flask import Flask, request, jsonify
 from whisper_online import *
 import deepl
@@ -11,13 +9,25 @@ import tempfile
 from gtts import gTTS
 import logging
 import signal
-import socket
 import sys
-import traceback
-
 app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO)
+
+# Create a logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Create a file handler and set the log level
+file_handler = logging.FileHandler('model_requests.log')
+file_handler.setLevel(logging.INFO)
+
+# Create a log formatter
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+
+# Add the file handler to the logger
+logger.addHandler(file_handler)
 
 def signal_handler(sig, frame):
     logging.info('Shutting down server...')
@@ -28,8 +38,8 @@ signal.signal(signal.SIGINT, signal_handler)
 DEEPL_AUTH_KEY = "38efa020-0aaf-456e-9a9f-91bf35eea0c1:fx"
 translator = deepl.Translator(DEEPL_AUTH_KEY)
 
-asr = FasterWhisperASR("auto", "base")
-online = OnlineASRProcessor(asr)
+asr = FasterWhisperASR("en", "base")
+online = OnlineASRProcessor(asr, buffer_trimming=("segment", 15)) # Use sentence instead of segment to split output by sentence
 
 def translate_text(text, source_lang, target_lang):
     result = translator.translate_text(text, source_lang=source_lang, target_lang=target_lang)
@@ -124,31 +134,24 @@ def handle_client(temp_file_name, source_lang, target_lang, settings):
 
 @app.route('/', methods=['POST'])
 def index():
-    audio = request.args.get('audio')
-    source_lang = request.args.get('sourceLang')
-    target_lang = request.args.get('targetLang')
-    settings = request.args.get('settings')
+    data = request.values
+    audio = data.get('audio')
+    source_lang = data.get('sourceLang')
+    target_lang = data.get('targetLang')
+    settings = data.get('settings')
 
-    # Create a logger
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
-
-    # Create a file handler and set the log level
-    file_handler = logging.FileHandler('model_requests.log')
-    file_handler.setLevel(logging.INFO)
-
-    # Create a log formatter
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-
-    # Add the file handler to the logger
-    logger.addHandler(file_handler)
+    if source_lang.lower() != asr.get_language():
+        asr.set_language(source_lang.lower())
 
     # Log the request info
     logger.info(f'Request received: audio={audio}, sourceLang={source_lang}, targetLang={target_lang}, settings={settings}')
 
     response = handle_client(audio, source_lang, target_lang, settings)
-    return response
+    if response is None:
+        return {}, 202 # 202 Accepted
+    else:
+        logger.info(f'Response sent: {response}')
+        return response, 200 # 200 OK
 
 if __name__ == "__main__":
     app.run(port=12346,debug=True)

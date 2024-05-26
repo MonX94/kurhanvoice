@@ -62,30 +62,6 @@ def text_to_speech(text, lang='en'):
     
     return temp_mp3.name
 
-# class Connection:
-#     '''it wraps conn object'''
-#     PACKET_SIZE = 65536
-
-#     def __init__(self, conn):
-#         self.conn = conn
-#         self.last_line = ""
-#         self.conn.setblocking(True)
-
-#     def send(self, line):
-#         '''it doesn't send the same line twice, because it was problematic in online-text-flow-events'''
-#         if line == self.last_line:
-#             return
-#         send_one_line(self.conn, line)
-#         self.last_line = line
-
-#     def receive_lines(self):
-#         in_line = receive_one_line(self.conn)
-#         return in_line
-
-#     def non_blocking_receive_audio(self):
-#         r = self.conn.recv(self.PACKET_SIZE)
-#         return r
-
 def process_audio(temp_file_name):
     # Convert audio file to desired format using ffmpeg
     converted_file_name = temp_file_name.replace('.wav', '_converted.wav')
@@ -116,21 +92,6 @@ def handle_client(temp_file_name, source_lang, target_lang, settings):
     tts_mp3_file = text_to_speech(translated_text, lang=target_lang.split('-')[0].lower()) # e.g. 'en-US' -> 'en'
     response = {'filename': os.path.basename(tts_mp3_file), 'text': output_text[2], 'translated_text': translated_text}
     return response
-
-# def main():
-#     try:
-#         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-#             server_socket.bind(('localhost', 12346))
-#             server_socket.listen(1)
-#             logging.info("Server 2 is listening...")
-
-#             while True:
-#                 client_socket, client_address = server_socket.accept()
-#                 logging.info("Connected to:", client_address)
-#                 handle_client(client_socket)
-#     except Exception as e:
-#         logging.error("Server error: %s", e)
-#         logging.error(traceback.format_exc())
 
 @app.route('/', methods=['POST'])
 def index():

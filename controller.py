@@ -38,15 +38,6 @@ def upload_audio():
 
         # Send the temporary file name and language info to Server 2
 
-        """
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect(SERVER_2_ADDRESS)
-            message = f"{temp_file.name}|{source_lang}|{target_lang}"
-            print(message)
-            s.sendall(message.encode('utf-8'))
-            response = s.recv(PACKET_SIZE).decode('utf-8')
-        """
-
         # Create a logger
         logger = logging.getLogger(__name__)
         logger.setLevel(logging.INFO)

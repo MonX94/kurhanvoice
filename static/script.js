@@ -33,6 +33,7 @@ let recorder;
 let audioContext;
 let intervalId;
 let audioQueue = [];
+let isPlaying = false;
 
 document.getElementById('startButton').addEventListener('click', async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -76,9 +77,8 @@ document.getElementById('startButton').addEventListener('click', async () => {
               .then(data => {
                 if (data.filename) {
                     const audioUrl = `/audio/${data.filename}`;
-                    const audioPlayback = document.getElementById('audioPlayback');
-                    audioPlayback.src = audioUrl;
-                    audioPlayback.play();
+                    audioQueue.push(audioUrl);
+                    playNextInQueue();
                 }
             }).catch(error => console.error(error));
 
@@ -86,6 +86,23 @@ document.getElementById('startButton').addEventListener('click', async () => {
         });
     }, 1000); // Send audio every second
 });
+
+function playNextInQueue() {
+    if (isPlaying || audioQueue.length === 0) {
+        return;
+    }
+    
+    isPlaying = true;
+    const audioUrl = audioQueue.shift();
+    const audioPlayback = document.getElementById('audioPlayback');
+    audioPlayback.src = audioUrl;
+    audioPlayback.play();
+    
+    audioPlayback.onended = () => {
+        isPlaying = false;
+        playNextInQueue();
+    };
+}
 
 // Stop recording
 document.getElementById('stopButton').onclick = () => {

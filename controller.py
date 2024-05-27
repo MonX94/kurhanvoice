@@ -11,6 +11,21 @@ CORS(app, resources={r"/upload": {"origins": "*"}})  # Allow requests from all o
 SERVER_2_ADDRESS = ('localhost', 12346)
 PACKET_SIZE = 65536
 
+# Create a logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Create a file handler and set the log level
+file_handler = logging.FileHandler('controller_requests.log')
+file_handler.setLevel(logging.INFO)
+
+# Create a log formatter
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+
+# Add the file handler to the logger
+logger.addHandler(file_handler)
+
 @app.route('/', methods=['GET'])
 def index():
     return app.send_static_file('index.html')
@@ -37,21 +52,6 @@ def upload_audio():
         file.save(temp_file.name)
 
         # Send the temporary file name and language info to Server 2
-
-        # Create a logger
-        logger = logging.getLogger(__name__)
-        logger.setLevel(logging.INFO)
-
-        # Create a file handler and set the log level
-        file_handler = logging.FileHandler('controller_requests.log')
-        file_handler.setLevel(logging.INFO)
-
-        # Create a log formatter
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-        file_handler.setFormatter(formatter)
-
-        # Add the file handler to the logger
-        logger.addHandler(file_handler)
 
         # Log the request info
         logger.info(f'Request received: audio={temp_file.name}, sourceLang={source_lang}, targetLang={target_lang}, settings={settings}')

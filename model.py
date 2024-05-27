@@ -87,7 +87,7 @@ def handle_client(temp_file_name, source_lang, target_lang, settings):
     translated_text = translate_text(output_text[2], source_lang, target_lang)
     beg = output_text[0]
     end = output_text[1]
-    print("%1.0f %1.0f %s" % (beg, end, translated_text), flush=True, file=sys.stderr)
+    print("%1.0f %1.0f %s" % (beg, end, translated_text), flush=True, file=sys.stderr) # Output with start and end timestamps
 
     tts_mp3_file = text_to_speech(translated_text, lang=target_lang.split('-')[0].lower()) # e.g. 'en-US' -> 'en'
     response = {'filename': os.path.basename(tts_mp3_file), 'text': output_text[2], 'translated_text': translated_text}

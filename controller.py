@@ -1,4 +1,4 @@
-from flask import Flask, request, send_file, render_template, jsonify
+from flask import Flask, request, send_file
 import requests
 import json
 from flask_cors import CORS
@@ -55,7 +55,7 @@ def upload_audio():
 
         # Log the request info
         logger.info(f'Request received: audio={temp_file.name}, sourceLang={source_lang}, targetLang={target_lang}, settings={settings}')
-        response = requests.post('http://localhost:12346/', data={'audio': temp_file.name, 'sourceLang': source_lang, 'targetLang': target_lang, 'settings': settings})
+        response = requests.post('http://localhost:12346/', json={'audio': temp_file.name, 'sourceLang': source_lang, 'targetLang': target_lang, 'settings': settings})
 
         if response.status_code == 202: # Accepted; Data still processing
             return {}, 202

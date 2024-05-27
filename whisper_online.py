@@ -373,7 +373,7 @@ class OnlineASRProcessor:
 
         prompt, non_prompt = self.prompt()
 
-        prompt = user_prompt + prompt[len(user_prompt):]
+        prompt += user_prompt # Add user prompt (glossary) at the end
         
         logger.debug(f"PROMPT: {prompt}")
         logger.debug(f"CONTEXT: {non_prompt}")

@@ -1,22 +1,30 @@
-document.getElementById('addEntry').addEventListener('click', function(event) {
-    event.preventDefault();
+// Add new glossary entry
+function addEntry(original = '', translation = '') {
     const glossary = document.getElementById('glossary');
     const entry = document.createElement('div');
     entry.classList.add('glossary-entry');
     entry.innerHTML = `
-        <input type="text" class="form-control mb-2" placeholder="Original">
-        <input type="text" class="form-control mb-2" placeholder="Translation">
+        <input type="text" class="form-control mb-2" placeholder="Original" value="${original}">
+        <input type="text" class="form-control mb-2" placeholder="Translation" value="${translation}">
         <button class="btn btn-danger remove-entry mb-2">Remove</button>
     `;
     glossary.appendChild(entry);
+}
+
+document.getElementById('addEntry').addEventListener('click', function(event) {
+    event.preventDefault();
+    addEntry();
 });
 
-document.getElementById('glossary').addEventListener('click', function(event) {
+// Remove glossary entry
+function removeEntry(event) {
     if (event.target.classList.contains('remove-entry')) {
         event.preventDefault();
         event.target.parentElement.remove();
     }
-});
+}
+
+document.getElementById('glossary').addEventListener('click', removeEntry);
 
 const sourceLangSelect = document.getElementById('sourceLang');
 const targetLangSelect = document.getElementById('targetLang');
@@ -24,6 +32,7 @@ const targetLangSelect = document.getElementById('targetLang');
 let recorder;
 let audioContext;
 let intervalId;
+let audioQueue = [];
 
 document.getElementById('startButton').addEventListener('click', async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -78,6 +87,7 @@ document.getElementById('startButton').addEventListener('click', async () => {
     }, 1000); // Send audio every second
 });
 
+// Stop recording
 document.getElementById('stopButton').onclick = () => {
     clearInterval(intervalId);
     recorder.stop();
@@ -85,11 +95,12 @@ document.getElementById('stopButton').onclick = () => {
     document.getElementById('stopButton').disabled = true;
 };
 
-
+// Save settings to local storage
 function applySettings() {
-    const volume = document.getElementById('volumeControl').value;
+    const sourceLang = sourceLangSelect.value;
+    const targetLang = targetLangSelect.value;
     const ttsVoice = document.getElementById('ttsVoice').value;
-    const glossaryEntries = document.querySelectorAll('#glossary .glossary-entry');
+    const glossaryEntries = document.querySelectorAll('.glossary-entry');
     const glossary = {};
 
     glossaryEntries.forEach(entry => {
@@ -100,5 +111,27 @@ function applySettings() {
         }
     });
 
-    // Apply settings logic here
+    const settings = {
+        sourceLang: sourceLang,
+        targetLang: targetLang,
+        ttsVoice: ttsVoice,
+        glossary: glossary
+    };
+
+    localStorage.setItem('settings', JSON.stringify(settings));
+}
+
+// Load settings from local storage
+const storedSettings = localStorage.getItem('settings');
+if (storedSettings) {
+    const settings = JSON.parse(storedSettings);
+    document.getElementById('sourceLang').value = settings.sourceLang;
+    document.getElementById('targetLang').value = settings.targetLang;
+    document.getElementById('ttsVoice').value = settings.ttsVoice;
+    const glossaryContainer = document.getElementById('glossary');
+    glossaryContainer.innerHTML = ''; // Clear the glossary container
+    Object.entries(settings.glossary).forEach(([original, translation]) => {
+        // Use the addEntry function to create a new glossary entry
+        addEntry(original, translation);
+    });
 }

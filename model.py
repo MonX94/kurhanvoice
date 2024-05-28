@@ -35,7 +35,10 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
-DEEPL_AUTH_KEY = "38efa020-0aaf-456e-9a9f-91bf35eea0c1:fx"
+DEEPL_AUTH_KEY = os.environ.get("DEEPL_AUTH_KEY")
+if DEEPL_AUTH_KEY is None:
+    raise ValueError("DEEPL_AUTH_KEY environment variable is not set")
+
 translator = deepl.Translator(DEEPL_AUTH_KEY)
 
 asr = FasterWhisperASR("en", "base")

@@ -44,6 +44,10 @@ document.getElementById('startButton').addEventListener('click', async () => {
     document.getElementById('startButton').disabled = true;
     document.getElementById('stopButton').disabled = false;
 
+    const textContainer = document.getElementById('textContainer');
+    const translationContainer = document.getElementById('translationContainer');
+    const subtitlesContainer = document.getElementById('subtitlesContainer');
+
     intervalId = setInterval(() => {
         recorder.exportWAV((blob) => {
             const formData = new FormData();
@@ -79,6 +83,13 @@ document.getElementById('startButton').addEventListener('click', async () => {
                     const audioUrl = `/audio/${data.filename}`;
                     audioQueue.push(audioUrl);
                     playNextInQueue();
+
+                    const text = data.text;
+                    const translatedText = data.translated_text;
+                    
+                    subtitlesContainer.hidden = false;
+                    textContainer.textContent += text + ' ';
+                    translationContainer.textContent += translatedText + ' ';
                 }
             }).catch(error => console.error(error));
 

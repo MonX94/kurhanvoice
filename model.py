@@ -96,7 +96,8 @@ Unsupported by Coqui TTS:
 
 
 def translate_text(text, source_lang, target_lang, glossary):
-    if glossary and source_lang in ["DA", "DE", "EN", "ES", "FR", "IT", "JA", "KO", "NB", "NL", "PL", "PT", "RU", "SV", "ZH"]:
+    glossary_languages = ["DA", "DE", "EN", "ES", "FR", "IT", "JA", "KO", "NB", "NL", "PL", "PT", "RU", "SV", "ZH"]
+    if glossary and source_lang in glossary_languages and target_lang in glossary_languages:
         # Delete old glossaries
         #translator.delete_glossaries()
         

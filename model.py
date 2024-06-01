@@ -1,4 +1,3 @@
-import subprocess
 import os
 import numpy as np
 import librosa
@@ -123,17 +122,12 @@ def text_to_speech(text, lang='en'):
     
     return temp_mp3.name
 
-def process_audio(temp_file_name):
-    # Convert audio file to desired format using ffmpeg
-    converted_file_name = temp_file_name.replace('.wav', '_converted.wav')
-    subprocess.run(['ffmpeg', '-i', temp_file_name, '-ar', '16000', '-ac', '1', '-acodec', 'pcm_s16le', converted_file_name], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-    
+def process_audio(temp_file_name): 
     # Process the converted audio file using librosa
-    audio, _ = librosa.load(converted_file_name, sr=16000, dtype=np.float32)
+    audio, _ = librosa.load(temp_file_name, sr=16000, dtype=np.float32)
     
     # Clean up the converted file
     os.remove(temp_file_name)
-    os.remove(converted_file_name)
     
     return audio
 

@@ -35,6 +35,13 @@ let intervalId;
 let audioQueue = [];
 let isPlaying = false;
 
+const socket = io.connect('https://' + location.hostname + ':' + location.port);
+
+socket.on('error', function (err) {
+    console.log(err);
+});
+
+
 document.getElementById('startButton').addEventListener('click', async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     audioContext = new AudioContext();
@@ -44,16 +51,8 @@ document.getElementById('startButton').addEventListener('click', async () => {
     document.getElementById('startButton').disabled = true;
     document.getElementById('stopButton').disabled = false;
 
-    const textContainer = document.getElementById('textContainer');
-    const translationContainer = document.getElementById('translationContainer');
-    const subtitlesContainer = document.getElementById('subtitlesContainer');
-
     intervalId = setInterval(() => {
         recorder.exportWAV((blob) => {
-            const formData = new FormData();
-            formData.append('audio', blob, 'audio.wav');
-            formData.append('sourceLang', document.getElementById('sourceLang').value);
-            formData.append('targetLang', document.getElementById('targetLang').value);
             
             const ttsVoice = document.getElementById('ttsVoice').value;
             const glossaryEntries = document.querySelectorAll('.glossary-entry');
@@ -67,36 +66,59 @@ document.getElementById('startButton').addEventListener('click', async () => {
                 }
             });
 
-            const settings = {
+            const settings = JSON.stringify({
                 ttsVoice: ttsVoice,
                 glossary: glossary
-            };
+            });
+            
+            const reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = () => {
+                const base64data = reader.result;
+                const data = {
+                    audio: base64data,
+                    sourceLang: sourceLangSelect.value,
+                    targetLang: targetLangSelect.value,
+                    settings: settings
+                };
 
-            formData.append('settings', JSON.stringify(settings));
-
-            fetch('/upload', {
-                method: 'POST',
-                body: formData
-            }).then(response => response.json())
-              .then(data => {
-                if (data.filename) {
-                    const audioUrl = `/audio/${data.filename}`;
-                    audioQueue.push(audioUrl);
-                    playNextInQueue();
-
-                    const text = data.text;
-                    const translatedText = data.translated_text;
-                    
-                    subtitlesContainer.hidden = false;
-                    textContainer.textContent += text + ' ';
-                    translationContainer.textContent += translatedText + ' ';
-                }
-            }).catch(error => console.error(error));
+                socket.emit('upload_audio', data);
+            }
 
             recorder.clear();
         });
     }, 1000); // Send audio every second
 });
+
+const textContainer = document.getElementById('textContainer');
+const translationContainer = document.getElementById('translationContainer');
+const subtitlesContainer = document.getElementById('subtitlesContainer');
+
+socket.on('audio_processed', (data) => {
+    console.log(data);
+    if (data.error) {
+        console.error(data.error);
+        return;
+    } else if (!data.filename) {
+        console.log('Listening...');
+        return
+    }
+    const audioUrl = `/audio/${data.filename}`;
+    audioQueue.push(audioUrl);
+    playNextInQueue();
+
+    const text = data.text;
+    const translatedText = data.translated_text;
+    
+    subtitlesContainer.hidden = false;
+    textContainer.textContent += text + ' ';
+    translationContainer.textContent += translatedText + ' ';
+});
+
+socket.on('error', (data) => {
+    console.error(data.error);
+})
+
 
 function playNextInQueue() {
     if (isPlaying || audioQueue.length === 0) {

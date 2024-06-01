@@ -122,7 +122,8 @@ def text_to_speech(text, lang='en'):
     
     return temp_mp3.name
 
-def process_audio(temp_file_name): 
+def process_audio(temp_file_name):
+    temp_file_name = os.path.join('audio_files', temp_file_name)
     # Process the converted audio file using librosa
     audio, _ = librosa.load(temp_file_name, sr=16000, dtype=np.float32)
     

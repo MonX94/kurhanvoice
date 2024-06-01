@@ -86,6 +86,11 @@ def upload_audio(data):
     except Exception as e:
         emit('error', {'error': str(e)})
         return
+    
+@socketio.on('restart')
+def restart():
+    response = requests.post('http://localhost:12346/restart')
+    emit('restart_response', response.json())
 
 @app.route('/audio/<filename>', methods=['GET'])
 def get_audio(filename):

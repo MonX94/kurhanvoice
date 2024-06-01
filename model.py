@@ -38,6 +38,8 @@ DEEPL_AUTH_KEY = os.environ.get("DEEPL_AUTH_KEY")
 if DEEPL_AUTH_KEY is None:
     raise ValueError("DEEPL_AUTH_KEY environment variable is not set")
 
+WARMUP_FILE = "audio_files/samples_jfk.wav"
+
 translator = deepl.Translator(DEEPL_AUTH_KEY)
 
 asr = FasterWhisperASR("en", "base")
@@ -167,6 +169,7 @@ def index():
 
     if source_lang.lower() != asr.get_language():
         asr.set_language(source_lang.lower())
+        online.init()
 
     response = handle_client(audio, source_lang, target_lang, settings)
     if response is None:
@@ -175,7 +178,15 @@ def index():
         logger.info(f'Response sent: {response}')
         return response, 200 # 200 OK
 
+# @app.route('/restart', methods=['POST'])
+# def restart():
+#     online.init()
+
 if __name__ == "__main__":
+    a = load_audio_chunk(WARMUP_FILE,0,1)
+    asr.transcribe(a)
+    logger.info("Whisper warmup complete")
+
     app.run(port=12346,debug=True)
     logging.info("Server 2 is listening...")
 

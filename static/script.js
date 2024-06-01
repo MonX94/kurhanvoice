@@ -51,6 +51,8 @@ document.getElementById('startButton').addEventListener('click', async () => {
     document.getElementById('startButton').disabled = true;
     document.getElementById('stopButton').disabled = false;
 
+    socket.emit('restart');
+
     intervalId = setInterval(() => {
         recorder.exportWAV((blob) => {
             

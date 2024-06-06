@@ -10,7 +10,7 @@ import tempfile
 import logging
 import base64
 
-app = Flask(__name__, static_url_path="/static", static_folder='/home/monx94/Downloads/kurhanvoice/static')
+app = Flask(__name__, static_url_path="/static", static_folder='static')
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # CORS(app, resources={r"/upload": {"origins": "*"}})  # Allow requests from all origins

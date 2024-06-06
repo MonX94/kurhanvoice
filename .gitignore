@@ -4,3 +4,4 @@ __pycache__/
 *.pem
 model_requests.log
 controller_requests.log
+.venv/

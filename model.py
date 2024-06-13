@@ -43,6 +43,9 @@ WARMUP_FILE = "audio_files/samples_jfk.wav"
 translator = deepl.Translator(DEEPL_AUTH_KEY)
 
 asr = FasterWhisperASR("en", "base")
+a = load_audio_chunk(WARMUP_FILE,0,1)
+asr.transcribe(a)
+logger.info("Whisper warmup complete")
 online = OnlineASRProcessor(asr, buffer_trimming=("segment", 15)) # Use sentence instead of segment to split output by sentence
 
 coqui_models = {
@@ -183,10 +186,6 @@ def index():
 #     online.init()
 
 if __name__ == "__main__":
-    a = load_audio_chunk(WARMUP_FILE,0,1)
-    asr.transcribe(a)
-    logger.info("Whisper warmup complete")
-
     app.run(port=12346,debug=True)
     logging.info("Server 2 is listening...")
 

@@ -41,7 +41,7 @@ socket.on('error', function (err) {
     console.log(err);
 });
 
-
+// StartRecording
 document.getElementById('startButton').addEventListener('click', async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     audioContext = new AudioContext();
@@ -96,6 +96,7 @@ const textContainer = document.getElementById('textContainer');
 const translationContainer = document.getElementById('translationContainer');
 const subtitlesContainer = document.getElementById('subtitlesContainer');
 
+// audioProcessed
 socket.on('audio_processed', (data) => {
     console.log(data);
     if (data.error) {
@@ -139,7 +140,7 @@ function playNextInQueue() {
     };
 }
 
-// Stop recording
+// StopRecording
 document.getElementById('stopButton').onclick = () => {
     clearInterval(intervalId);
     recorder.stop();
